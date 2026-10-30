@@ -44,8 +44,12 @@ A ANP (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) publica 
 ├── backend/        # API REST (FastAPI)
 │   ├── app/
 │   └── tests/
+├── db/             # migrações do banco (Alembic) e testes do schema
+│   ├── migrations/
+│   └── tests/
 ├── frontend/       # interface web (React + Vite)
-└── docs/           # diagramas e prints
+├── docs/           # diagramas e prints
+└── docker-compose.yml  # PostgreSQL local
 ```
 
 ## Fonte dos dados
@@ -54,7 +58,42 @@ A ANP (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) publica 
 
 ## Como executar
 
-_Instruções serão adicionadas conforme o projeto avançar._
+### Pré-requisitos
+
+- [Git](https://git-scm.com/)
+- [Python 3.14](https://www.python.org/downloads/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+### 1. Configurar as variáveis de ambiente
+
+```bash
+cp .env.example .env
+# edite o .env e defina POSTGRES_PASSWORD (e a mesma senha na DATABASE_URL)
+```
+
+### 2. Subir o banco de dados
+
+```bash
+docker compose up -d      # liga o PostgreSQL (porta 5432)
+docker compose ps         # deve mostrar "healthy"
+```
+
+### 3. Criar o ambiente Python e as tabelas
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate   |   Linux/macOS: source .venv/bin/activate
+pip install -r db/requirements.txt
+alembic -c db/alembic.ini upgrade head
+```
+
+### 4. Rodar os testes
+
+```bash
+python -m pytest db/tests -v
+```
+
+_As instruções do ETL, da API e do front-end serão adicionadas nas próximas etapas._
 
 ## Autor
 

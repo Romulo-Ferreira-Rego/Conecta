@@ -111,8 +111,12 @@ conecta/
 ├── backend/        # FastAPI
 │   ├── app/
 │   └── tests/
+├── db/             # migrações Alembic (schema dados) e testes do banco
+│   ├── migrations/versions/
+│   └── tests/
 ├── frontend/       # React + Vite
-└── docs/           # diagramas, prints
+├── docs/           # diagramas, prints
+└── docker-compose.yml  # PostgreSQL local
 ```
 
 ---
@@ -193,6 +197,15 @@ CREATE TABLE importacao (
 );
 ```
 > Obs.: criar `importacao` antes de `coleta_preco` na migração.
+
+> **Implementado na etapa 2 (migrações em `db/migrations/versions/`), com ajustes:**
+> - Todas as tabelas ficam no schema `dados` (ex.: `dados.coleta_preco`).
+> - `importacao` ganhou `tamanho_bytes BIGINT`, `hash_sha256 CHAR(64)` e `modificado_em TIMESTAMPTZ` (detecção de arquivos republicados, RF13). Ao reimportar um arquivo atualizado, a linha existente é atualizada (o `arquivo` continua `UNIQUE`).
+> - Datas de controle usam `TIMESTAMPTZ` (o job roda em UTC).
+> - CHECKs: `valor_venda > 0`, `valor_compra > 0`, `status IN ('sucesso','erro')`.
+> - Índice extra `idx_revenda_municipio` em `revenda (municipio_id)`.
+> - `regiao` e `estado` já vêm carregadas (5 regiões, 27 UFs).
+> - A visão `preco_medio_mensal` tem índice único em `(produto_id, mes, estado_id, municipio_id)` e `mes` é do tipo `date`; usar `REFRESH MATERIALIZED VIEW CONCURRENTLY dados.preco_medio_mensal` para não bloquear leituras.
 
 ### 6.3 Índices e agregação
 ```sql

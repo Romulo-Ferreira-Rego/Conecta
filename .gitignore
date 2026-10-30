@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+CREDENCIAIS.txt
 
 # --- Dados brutos da ANP (arquivos grandes, baixados pelo ETL) ---
 etl/data/raw/*
