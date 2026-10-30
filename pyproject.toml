@@ -1,5 +1,10 @@
 [tool.pytest.ini_options]
-testpaths = ["db/tests", "etl/tests"]
+testpaths = ["db/tests", "etl/tests", "backend/tests"]
 pythonpath = ["."]
 # importlib: permite pastas de teste com arquivos de mesmo nome (ex.: conftest.py)
 addopts = "--import-mode=importlib"
+filterwarnings = [
+    # O Starlette recomenda trocar o httpx pelo httpx2 no cliente de testes.
+    # O httpx continua funcionando; a troca fica para quando o pacote for avaliado.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]

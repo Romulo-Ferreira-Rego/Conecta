@@ -337,6 +337,18 @@ Nunca usar só a cor para indicar alta/queda: incluir seta (▲▼) e sinal (+/�
 
 Somente leitura, CORS liberado apenas para o domínio do front-end, limite de requisições básico.
 
+> **Implementado na etapa 4** (`backend/app/`, rodar com `uvicorn backend.app.main:app --reload`):
+> - Produto é identificado por **código** derivado do nome (`GASOLINA ADITIVADA` → `gasolina-aditivada`); município por **id**.
+> - `/api/resumo`: `produto` opcional (sem ele, todos); aceita `municipio`. Compara o mês mais recente com o anterior.
+> - `/api/serie`: `inicio`/`fim` no formato `AAAA-MM`.
+> - `/api/ranking`: usa o mês mais recente; aceita `uf` para ranquear municípios de um estado; municípios precisam de ≥ 10 coletas no mês (`RANKING_MIN_COLETAS`).
+> - Endpoint extra **`/api/etanol-gasolina?uf=&municipio=`** (RF08): razão etanol/gasolina e recomendação; `null` sem dados.
+> - Extra **`/api/saude`** (health check para o deploy).
+> - Médias agregadas são **ponderadas** por `qtd_coletas`.
+> - Limite de requisições **próprio** (`backend/app/limite.py`, 60/min por IP): o slowapi 0.1.10 não encontra rotas do FastAPI 0.16x (`_IncludedRouter`) e deixava tudo sem limite.
+> - Log de acesso do uvicorn desligado (grava IP); o log próprio registra só método, rota, status e tempo.
+> - **Deploy (etapa 7):** atrás de proxy (Render), rodar o uvicorn com `--proxy-headers --forwarded-allow-ips="*"` para o limite usar o IP real; criar usuário de banco só leitura para a API.
+
 ### 9.1 Atualização automática (RF13)
 
 **Fluxo do job:**

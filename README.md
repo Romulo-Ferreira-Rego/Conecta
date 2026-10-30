@@ -102,7 +102,33 @@ python -m etl.atualizar --verificar-hash       # confere o conteúdo mesmo com t
 python -m etl.importar dsas/ca/ca-2026-01.zip  # importa um arquivo específico
 ```
 
-### 5. Rodar os testes
+### 5. Rodar a API
+
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.app.main:app --reload
+```
+
+A documentação interativa (Swagger) fica em <http://localhost:8000/docs>.
+
+| Rota | Descrição |
+|------|-----------|
+| `GET /api/produtos` | Produtos e seus códigos (`gasolina`, `diesel-s10`…) |
+| `GET /api/estados` | As 27 UFs |
+| `GET /api/municipios?uf=MA` | Municípios de uma UF |
+| `GET /api/resumo?produto=&uf=&municipio=` | Preço médio do último mês e variação sobre o anterior |
+| `GET /api/serie?produto=&uf=&municipio=&inicio=AAAA-MM&fim=AAAA-MM` | Série mensal (média, mínimo, máximo) |
+| `GET /api/ranking?produto=&nivel=uf\|municipio&ordem=asc\|desc&limite=10&uf=` | UFs ou municípios mais caros/baratos |
+| `GET /api/etanol-gasolina?uf=&municipio=` | Etanol ou gasolina? (regra dos 70%) |
+| `GET /api/meta` | Data da última atualização dos dados |
+
+Decisões importantes:
+
+- **Média ponderada:** médias de UF e do Brasil pesam cada município pelo número de coletas (equivale à média de todas as coletas).
+- **Ranking de municípios:** só entram cidades com pelo menos 10 coletas no mês, para evitar distorções por amostras pequenas.
+- **Proteções:** somente `GET`, CORS restrito ao front-end, limite de 60 requisições/minuto por IP, cache HTTP de 1 hora e logs sem IP (LGPD).
+
+### 6. Rodar os testes
 
 ```bash
 python -m pytest -v
@@ -122,7 +148,7 @@ Os testes usam um banco separado (`conecta_test`), criado automaticamente no mes
 
 Se mais de 10% das linhas de um arquivo forem descartadas, a importação falha de propósito: provavelmente a ANP mudou o formato, e é melhor avisar do que gravar dados incompletos.
 
-_As instruções da API e do front-end serão adicionadas nas próximas etapas._
+_As instruções do front-end serão adicionadas na próxima etapa._
 
 ## Autor
 

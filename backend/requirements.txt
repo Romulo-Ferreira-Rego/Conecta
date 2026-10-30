@@ -1,0 +1,10 @@
+# API REST (FastAPI)
+fastapi>=0.120
+uvicorn[standard]>=0.38
+pydantic-settings>=2.11
+sqlalchemy>=2.0.40
+psycopg[binary]>=3.2
+python-dotenv>=1.1
+# Testes
+pytest>=8.4
+httpx>=0.28
