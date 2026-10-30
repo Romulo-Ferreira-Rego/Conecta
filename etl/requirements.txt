@@ -1,0 +1,8 @@
+# ETL: download, limpeza e carga dos dados da ANP
+pandas>=2.3
+httpx>=0.28
+beautifulsoup4>=4.13
+sqlalchemy>=2.0.40
+psycopg[binary]>=3.2
+python-dotenv>=1.1
+pytest>=8.4
