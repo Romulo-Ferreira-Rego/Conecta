@@ -97,5 +97,5 @@ _As instruções do ETL, da API e do front-end serão adicionadas nas próximas 
 
 ## Autor
 
-**Rômulo Ferreira Rego**, estudante de Sistemas de Informação (UNDB).
+**Rômulo Ferreira Rego**, estudante de Engenharia de Software (UNDB).
 Contato: romulorego16@gmail.com
