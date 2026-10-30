@@ -1,5 +1,6 @@
 import { Outlet, ScrollRestoration } from 'react-router'
 
+import { CookieBanner } from './CookieBanner'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -17,6 +18,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <CookieBanner />
       <ScrollRestoration />
     </div>
   )

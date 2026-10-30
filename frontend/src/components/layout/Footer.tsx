@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 
 import { useMeta } from '../../api/hooks'
+import { openCookiePreferences } from '../../lib/consent'
 import { formatDate } from '../../lib/format'
 import { ContactEmail } from '../ui/ContactEmail'
 import { LogoMark } from './Logo'
@@ -31,6 +32,11 @@ export function Footer() {
             <li><Link className="text-ink-2 transition-colors hover:text-ink" to="/sobre-os-dados">Sobre os dados</Link></li>
             <li><Link className="text-ink-2 transition-colors hover:text-ink" to="/privacidade">Política de Privacidade</Link></li>
             <li><Link className="text-ink-2 transition-colors hover:text-ink" to="/sobre">Sobre o projeto</Link></li>
+            <li>
+              <button type="button" onClick={openCookiePreferences} className="text-ink-2 transition-colors hover:text-ink">
+                Preferências de cookies
+              </button>
+            </li>
           </ul>
         </nav>
 

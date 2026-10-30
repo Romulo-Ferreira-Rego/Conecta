@@ -97,6 +97,36 @@
   }
 }
 
+/* Texto corrido das páginas institucionais (e, no futuro, das matérias). */
+@layer components {
+  .prose-conecta {
+    @apply max-w-[68ch] text-[15.5px] leading-[1.75] text-ink-2;
+  }
+  .prose-conecta > * + * {
+    @apply mt-4;
+  }
+  .prose-conecta strong {
+    @apply font-semibold text-ink;
+  }
+  .prose-conecta a {
+    @apply font-medium text-brand-ink underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-brand;
+  }
+  .prose-conecta ul {
+    @apply space-y-2 pl-5;
+    list-style: none;
+  }
+  .prose-conecta ul > li {
+    @apply relative;
+  }
+  .prose-conecta ul > li::before {
+    content: '';
+    @apply absolute top-[0.72em] -left-4 h-px w-2 bg-line-strong;
+  }
+  .prose-conecta h3 {
+    @apply pt-2 text-base font-semibold text-ink;
+  }
+}
+
 @layer utilities {
   /* Colunas de números alinhados (tabelas, eixos). Números grandes usam algarismos proporcionais. */
   .tnum {

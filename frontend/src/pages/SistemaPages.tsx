@@ -4,30 +4,6 @@ import { Link } from 'react-router'
 import { Skeleton } from '../components/ui/States'
 import { fadeUp, stagger } from '../lib/motion'
 
-/** Página provisória das seções institucionais (serão escritas na etapa 6). */
-export function EmBrevePage({ titulo }: { titulo: string }) {
-  return (
-    <>
-      <title>{`${titulo} — Conecta`}</title>
-      <motion.div initial="hidden" animate="show" variants={stagger} className="max-w-2xl py-16 sm:py-24">
-        <motion.p variants={fadeUp} className="eyebrow !text-brand-ink">Em breve</motion.p>
-        <motion.h1 variants={fadeUp} className="mt-3 text-4xl font-semibold tracking-[-0.03em]">{titulo}</motion.h1>
-        <motion.p variants={fadeUp} className="mt-4 text-lg text-ink-2">
-          Esta página está sendo preparada. Enquanto isso, explore o painel de preços de combustíveis.
-        </motion.p>
-        <motion.div variants={fadeUp} className="mt-8">
-          <Link
-            to="/dados/combustiveis"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            Ir para o painel <span aria-hidden="true">→</span>
-          </Link>
-        </motion.div>
-      </motion.div>
-    </>
-  )
-}
-
 /** Exibido por uma fração de segundo enquanto o código do painel é baixado. */
 export function PageLoading() {
   return (

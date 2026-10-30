@@ -31,6 +31,19 @@ globalThis.ResizeObserver = class {
   disconnect() {}
 }
 
+// Animações que começam quando o elemento entra na tela (diagrama de "Sobre o projeto").
+globalThis.IntersectionObserver = class {
+  readonly root = null
+  readonly rootMargin = ''
+  readonly thresholds = []
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return []
+  }
+} as unknown as typeof IntersectionObserver
+
 // <dialog> nativo (gaveta de filtros).
 HTMLDialogElement.prototype.showModal = function () {
   this.open = true

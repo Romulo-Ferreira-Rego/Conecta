@@ -330,9 +330,14 @@ Nunca usar só a cor para indicar alta/queda: incluir seta (▲▼) e sinal (+/�
   Cores de gráfico validadas com o script do guia de dataviz: série `#0D9488` (claro) / `#0D9E8F` (escuro), destaque `#D97706`.
 - **Gráficos:** barras sempre a partir do zero (nunca cortar o eixo); eixo Y da linha com passos 1/2/5; rótulo só no último valor; tabela alternativa ("Ver tabela") em todo gráfico.
 - **Animações:** entrada em cascata, números que "rolam", indicador deslizante (layout animation), gaveta com `<dialog>` nativo, troca de tema com revelação circular (View Transitions). Tudo respeita `prefers-reduced-motion`.
-- **Filtros na URL** (`produto`, `uf`, `municipio`, `periodo`); `periodo` = 6m | 12m | 24m | tudo (padrão 12m).
+- **Filtros na URL** (`produto`, `uf`, `municipio`, `periodo`); `periodo` = 6m | 12m | 24m | tudo | personalizado (padrão 12m).
 - O painel é carregado sob demanda (`lazy`), separando os gráficos do pacote inicial.
-- Páginas institucionais são provisórias ("Em breve") até a etapa 6.
+
+### 8.7 Implementado na etapa 6
+- **Período personalizado** (`?periodo=personalizado&inicio=AAAA-MM&fim=AAAA-MM`): mínimo de **3 meses** (`MIN_MESES` em `src/lib/periodo.ts`), limitado a `primeira_coleta`..`ultima_coleta` de `/api/meta`. Seletores desabilitam meses inválidos e ajustam a outra ponta; URL curta/malformada/fora dos dados cai no padrão (12 meses). Vale só para o gráfico de evolução.
+- **Páginas:** `/sobre-os-dados`, `/privacidade`, `/sobre`, montadas com o componente genérico `components/ui/Article.tsx` (abertura + índice lateral + seções; reutilizável para matérias) e o estilo de texto `.prose-conecta`.
+- **Consentimento** (`src/lib/consent.ts`): o site **não grava cookies**; usa só `localStorage` com `conecta-tema` e `conecta-cookies` (`aceito` | `recusado`). Banner `components/layout/CookieBanner.tsx` com "Aceitar" e "Recusar" de estilo idêntico; reaberto por "Preferências de cookies" no rodapé e na política. **Qualquer analytics futuro só pode carregar se `hasOptionalConsent()` for verdadeiro.**
+- **Política de Privacidade** (`pages/PrivacidadePage.tsx`): reflete o comportamento real do código. Ao mudar o texto, atualizar `ULTIMA_ATUALIZACAO`. Não é parecer jurídico.
 
 ---
 
@@ -360,7 +365,8 @@ Somente leitura, CORS liberado apenas para o domínio do front-end, limite de re
 > - Médias agregadas são **ponderadas** por `qtd_coletas`.
 > - Limite de requisições **próprio** (`backend/app/limite.py`, 60/min por IP): o slowapi 0.1.10 não encontra rotas do FastAPI 0.16x (`_IncludedRouter`) e deixava tudo sem limite.
 > - Log de acesso do uvicorn desligado (grava IP); o log próprio registra só método, rota, status e tempo.
-> - **Deploy (etapa 7):** atrás de proxy (Render), rodar o uvicorn com `--proxy-headers --forwarded-allow-ips="*"` para o limite usar o IP real; criar usuário de banco só leitura para a API.
+> - **Deploy (etapa 7):** atrás de proxy (Render), rodar o uvicorn com `--proxy-headers --forwarded-allow-ips="*"` para o limite usar o IP real; criar usuário de banco só leitura para a API. **Política de Privacidade:** listar os provedores de hospedagem escolhidos (seção 4) e garantir retenção de logs de no máximo 30 dias, como a política promete.
+> - `/api/meta` também devolve `primeira_coleta` (etapa 6). Respostas têm `Cache-Control: max-age=3600`: após mudar o formato de um endpoint, o navegador pode servir a versão antiga por até 1 hora.
 
 ### 9.1 Atualização automática (RF13)
 

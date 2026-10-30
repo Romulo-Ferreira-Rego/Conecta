@@ -150,10 +150,12 @@ O endereço da API vem de `VITE_API_URL` no `.env` da raiz (padrão: `http://loc
 Destaques do front-end:
 
 - **Filtros na URL** (`?produto=etanol&uf=MA`): qualquer consulta pode ser compartilhada por link.
+- **Período do gráfico:** atalhos (6, 12, 24 meses, tudo) ou intervalo personalizado de no mínimo 3 meses, limitado aos meses com dados.
 - **Manchete gerada dos dados**, em linguagem jornalística ("Gasolina cai 1,6% no Maranhão em setembro").
 - **Acessibilidade:** variação com seta e sinal (nunca só cor), tabela alternativa para cada gráfico, navegação por teclado, respeito à preferência por menos movimento.
 - **Tema claro e escuro**, com a escolha guardada só no navegador.
-- **Privacidade:** fonte Inter hospedada no próprio site (o navegador do visitante não contata o Google).
+- **Privacidade:** nenhum cookie; fonte Inter hospedada no próprio site (o navegador do visitante não contata o Google); banner com "Aceitar" e "Recusar" de mesmo destaque, que controla qualquer recurso opcional futuro.
+- **Páginas institucionais:** Sobre os dados (`/sobre-os-dados`), Política de Privacidade (`/privacidade`) e Sobre o projeto (`/sobre`).
 
 ### 7. Rodar os testes
 
