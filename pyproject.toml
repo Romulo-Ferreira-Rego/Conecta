@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+testpaths = ["db/tests", "etl/tests"]
+pythonpath = ["."]
+# importlib: permite pastas de teste com arquivos de mesmo nome (ex.: conftest.py)
+addopts = "--import-mode=importlib"
