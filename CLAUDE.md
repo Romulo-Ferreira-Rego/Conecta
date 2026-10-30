@@ -4,7 +4,7 @@
 > **v1 (este documento):** começa pela editoria de dados com o Painel de Preços de Combustíveis.
 
 > Documento de referência para o Claude Code. Leia este arquivo inteiro antes de começar qualquer tarefa.
-> Autor: Rômulo (Sistemas de Informação — UNDB). Objetivo: projeto de portfólio.
+> Autor: Rômulo (Engenharia de Software — UNDB). Objetivo: projeto de portfólio.
 
 ---
 
