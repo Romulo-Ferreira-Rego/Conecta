@@ -14,6 +14,7 @@ Tudo roda na conexão/transação recebida: quem chama decide quando confirmar.
 import logging
 import math
 from dataclasses import dataclass
+from datetime import date
 
 from sqlalchemy import Connection, Engine, text
 
@@ -172,6 +173,19 @@ def record_failure(engine: Engine, arquivo: str, size: int | None) -> None:
     """
     with engine.begin() as conn:
         conn.execute(RECORD_FAILURE, {"arquivo": arquivo, "tamanho": size})
+
+
+def count_older_than(conn: Connection, cutoff: date) -> int:
+    return conn.execute(
+        text("SELECT COUNT(*) FROM dados.coleta_preco WHERE data_coleta < :cutoff"), {"cutoff": cutoff}
+    ).scalar_one()
+
+
+def delete_older_than(conn: Connection, cutoff: date) -> int:
+    """Apaga coletas anteriores a `cutoff` (retenção no banco de produção)."""
+    return conn.execute(
+        text("DELETE FROM dados.coleta_preco WHERE data_coleta < :cutoff"), {"cutoff": cutoff}
+    ).rowcount
 
 
 def refresh_view(conn: Connection) -> None:

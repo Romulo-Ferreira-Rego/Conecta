@@ -96,7 +96,10 @@ export function PrivacidadePage() {
                 </p>
                 <ul>
                   <li>IP para limite de requisições: até 1 minuto, apenas em memória.</li>
-                  <li>Registros de funcionamento: no máximo 30 dias.</li>
+                  <li>
+                    Registros de funcionamento: no máximo 30 dias (hoje, 7 dias na hospedagem da API e 1 hora na do
+                    site).
+                  </li>
                   <li>Preferências no navegador: até você apagá-las.</li>
                 </ul>
               </>
@@ -111,9 +114,24 @@ export function PrivacidadePage() {
                   Nenhum dado é vendido ou compartilhado para fins comerciais. O site depende apenas de{' '}
                   <strong>provedores de hospedagem</strong> (do site, da API e do banco de dados), que podem registrar dados
                   técnicos de acesso, como o endereço IP, em seus próprios sistemas e conforme suas políticas. Esses
-                  provedores podem estar localizados fora do Brasil.
+                  provedores estão localizados nos Estados Unidos:
                 </p>
-                <p>Os provedores utilizados serão listados aqui quando o site for publicado.</p>
+                <ul>
+                  <li>
+                    <strong>Vercel</strong> — hospeda o site (as páginas que você vê).
+                  </li>
+                  <li>
+                    <strong>Render</strong> — hospeda a API que entrega os dados ao site.
+                  </li>
+                  <li>
+                    <strong>Neon</strong> — hospeda o banco de dados, que guarda apenas os preços públicos da ANP (nenhum
+                    dado de visitantes).
+                  </li>
+                  <li>
+                    <strong>GitHub</strong> — guarda o código e executa a atualização semanal dos dados; não recebe dados de
+                    quem visita o site.
+                  </li>
+                </ul>
               </>
             ),
           },

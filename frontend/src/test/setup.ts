@@ -2,7 +2,11 @@
 
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import { MotionGlobalConfig } from 'motion/react'
 import { afterEach, vi } from 'vitest'
+
+// Nos testes, as animações terminam na hora (o jsdom não roda quadros de animação como o navegador).
+MotionGlobalConfig.skipAnimations = true
 
 afterEach(() => {
   cleanup()

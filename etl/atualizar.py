@@ -15,6 +15,7 @@ Uso (a partir da raiz do projeto):
     python -m etl.atualizar                     # executa
     python -m etl.atualizar --desde 2025-01     # muda o início da janela
     python -m etl.atualizar --verificar-hash    # baixa e compara mesmo com tamanho igual
+    python -m etl.atualizar --manter-meses 24   # produção: apaga coletas com mais de 24 meses
 """
 
 import argparse
@@ -25,6 +26,7 @@ from datetime import date
 
 from sqlalchemy import Engine, text
 
+from etl import carga
 from etl.download import download, remote_size
 from etl.fontes import DataFile, fetch_page, new_client, parse_page
 from etl.importar import configure_logging, get_engine, import_file, refresh_view
@@ -32,6 +34,8 @@ from etl.importar import configure_logging, get_engine, import_file, refresh_vie
 log = logging.getLogger("etl")
 
 DEFAULT_WINDOW_MONTHS = 24
+# Menos que isso deixaria o painel sem histórico para o período personalizado (mínimo de 3 meses)
+MIN_RETENTION_MONTHS = 3
 
 NEW = "novo"
 PREVIOUS_ERROR = "erro_anterior"
@@ -94,18 +98,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true", help="só mostra o que seria baixado")
     parser.add_argument("--desde", help="início da janela no formato AAAA-MM (padrão: 24 meses atrás)")
     parser.add_argument("--verificar-hash", action="store_true", help="baixa e compara o hash mesmo com tamanho igual")
+    parser.add_argument(
+        "--manter-meses",
+        type=int,
+        help="retenção: apaga coletas com mais de N meses (usado em produção para caber no plano gratuito)",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
     configure_logging(args.verbose)
 
+    cutoff = months_ago(date.today(), args.manter_meses) if args.manter_meses else None
+    if args.manter_meses is not None and args.manter_meses < MIN_RETENTION_MONTHS:
+        parser.error(f"--manter-meses deve ser pelo menos {MIN_RETENTION_MONTHS}")
     if args.desde:
         year, month = map(int, args.desde.split("-"))
         since = date(year, month, 1)
+        if cutoff and since < cutoff:
+            parser.error("--desde não pode ser anterior ao período mantido por --manter-meses")
     else:
-        since = months_ago(date.today(), DEFAULT_WINDOW_MONTHS)
+        since = cutoff or months_ago(date.today(), DEFAULT_WINDOW_MONTHS)
 
     engine = get_engine()
     imported = load_imported(engine)
+    failures = 0
+    changed = False
 
     with new_client() as client:
         files = parse_page(fetch_page(client))
@@ -129,25 +145,32 @@ def main(argv: list[str] | None = None) -> int:
 
         if not planned:
             log.info("Nada novo para importar.")
-            return 0
         for data_file, reason in planned:
             log.info("%s %s (%s)", "Baixaria" if args.dry_run else "Vai importar", data_file.name, reason)
-        if args.dry_run:
-            return 0
 
-        failures = 0
-        changed = False
-        for data_file, reason in planned:
-            try:
-                downloaded = download(client, data_file.url, data_file.name)
-                previous = imported.get(data_file.name)
-                if previous and previous.status == "sucesso" and previous.sha256 == downloaded.sha256:
-                    log.info("Conteúdo igual ao já importado: %s", data_file.name)
-                    continue
-                import_file(engine, data_file.name, downloaded.path, downloaded.size, downloaded.sha256)
-                changed = True
-            except Exception:
-                failures += 1
+        if not args.dry_run:
+            for data_file, reason in planned:
+                try:
+                    downloaded = download(client, data_file.url, data_file.name)
+                    previous = imported.get(data_file.name)
+                    if previous and previous.status == "sucesso" and previous.sha256 == downloaded.sha256:
+                        log.info("Conteúdo igual ao já importado: %s", data_file.name)
+                        continue
+                    import_file(engine, data_file.name, downloaded.path, downloaded.size, downloaded.sha256)
+                    changed = True
+                except Exception:
+                    failures += 1
+
+    if cutoff:
+        with engine.begin() as conn:
+            if args.dry_run:
+                log.info("Retenção: apagaria %d coletas anteriores a %s.", carga.count_older_than(conn, cutoff), cutoff.strftime("%m/%Y"))
+            else:
+                removed = carga.delete_older_than(conn, cutoff)
+                log.info("Retenção: %d coletas anteriores a %s apagadas.", removed, cutoff.strftime("%m/%Y"))
+                changed = changed or removed > 0
+    if args.dry_run:
+        return 0
 
     if changed:
         refresh_view(engine)

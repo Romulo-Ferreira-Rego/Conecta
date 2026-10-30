@@ -1,0 +1,25 @@
+# Configuração da API no Render ("Blueprint"). Em render.com: New > Blueprint > este repositório.
+# As variáveis marcadas com "sync: false" são preenchidas no painel do Render (nunca no código).
+services:
+  - type: web
+    name: conecta-api
+    runtime: python
+    plan: free
+    # Mesma região do banco (Neon, N. Virginia): a API conversa com o banco a cada requisição.
+    region: virginia
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r backend/requirements.txt
+    # --proxy-headers: o Render fica na frente da API como proxy; sem isso, todos os
+    # visitantes teriam o IP do proxy e dividiriam o mesmo limite de requisições.
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /api/saude
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.14"
+      # URL do usuário SOMENTE LEITURA (conecta_api) no Neon
+      - key: DATABASE_URL
+        sync: false
+      # Endereço do site na Vercel, ex.: https://conecta.vercel.app
+      - key: CORS_ORIGINS
+        sync: false

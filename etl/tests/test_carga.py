@@ -72,6 +72,22 @@ def test_view_shows_monthly_average_after_refresh(conn, cleaned):
     assert media == Decimal("6.34")  # (6,29 + 6,39) / 2
 
 
+def test_retention_deletes_only_old_collections(conn, cleaned):
+    """Retenção: apaga coletas anteriores ao corte e mantém as demais."""
+    from datetime import date
+
+    result = carga.load(conn, cleaned, ARQUIVO, size=None, sha256=None)
+    ids = {"id": result.importacao_id}
+    # A amostra tem coletas em 02/01, 05/01 e 09/01/2026
+    assert carga.count_older_than(conn, date(2026, 1, 5)) >= 2
+    removed = carga.delete_older_than(conn, date(2026, 1, 5))
+    assert removed >= 2
+    restantes = conn.execute(
+        text("SELECT MIN(data_coleta) FROM dados.coleta_preco WHERE importacao_id = :id"), ids
+    ).scalar()
+    assert restantes == date(2026, 1, 5)
+
+
 def test_record_failure_marks_file_for_retry(engine):
     """Em caso de erro, o registro fica sem hash, para a próxima execução tentar de novo."""
     arquivo = "teste/falha.csv"

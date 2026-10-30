@@ -3,6 +3,7 @@ import { Outlet, ScrollRestoration } from 'react-router'
 import { CookieBanner } from './CookieBanner'
 import { Footer } from './Footer'
 import { Header } from './Header'
+import { ServerWaking } from './ServerWaking'
 
 export function Layout() {
   return (
@@ -19,6 +20,7 @@ export function Layout() {
       </main>
       <Footer />
       <CookieBanner />
+      <ServerWaking />
       <ScrollRestoration />
     </div>
   )
