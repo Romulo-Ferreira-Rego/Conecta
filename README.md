@@ -38,9 +38,9 @@ A ANP (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) publica 
 ## Estrutura de pastas
 
 ```
-├── etl/            # download, limpeza e carga dos CSVs da ANP
+├── etl/            # download, limpeza e carga dos arquivos da ANP
 │   ├── tests/
-│   └── data/raw/   # CSVs baixados (não versionados)
+│   └── data/raw/   # arquivos baixados (não versionados)
 ├── backend/        # API REST (FastAPI)
 │   ├── app/
 │   └── tests/
@@ -83,17 +83,46 @@ docker compose ps         # deve mostrar "healthy"
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Linux/macOS: source .venv/bin/activate
-pip install -r db/requirements.txt
+pip install -r db/requirements.txt -r etl/requirements.txt
 alembic -c db/alembic.ini upgrade head
 ```
 
-### 4. Rodar os testes
+### 4. Carregar os dados da ANP
 
 ```bash
-python -m pytest db/tests -v
+python -m etl.atualizar --dry-run   # mostra o que seria baixado
+python -m etl.atualizar             # baixa e importa os últimos 24 meses (~5 min)
 ```
 
-_As instruções do ETL, da API e do front-end serão adicionadas nas próximas etapas._
+O `atualizar` lê a página da ANP, compara com o que já foi importado e só baixa o que é novo ou mudou. Outras opções:
+
+```bash
+python -m etl.atualizar --desde 2025-01        # muda o início da janela
+python -m etl.atualizar --verificar-hash       # confere o conteúdo mesmo com tamanho igual
+python -m etl.importar dsas/ca/ca-2026-01.zip  # importa um arquivo específico
+```
+
+### 5. Rodar os testes
+
+```bash
+python -m pytest -v
+```
+
+Os testes usam um banco separado (`conecta_test`), criado automaticamente no mesmo PostgreSQL, e nunca alteram os dados de desenvolvimento.
+
+### Como o ETL funciona
+
+| Etapa | Módulo | O que faz |
+|-------|--------|-----------|
+| Descoberta | `etl/fontes.py` | Lê os links da página da ANP; o período vem do texto do link |
+| Download | `etl/download.py` | Baixa para `etl/data/raw/` e calcula o hash SHA-256 |
+| Extração | `etl/extracao.py` | Lê CSV ou CSV dentro de ZIP (UTF-8 ou latin-1) |
+| Limpeza | `etl/limpeza.py` | Padroniza textos, CNPJ, datas e preços; descarta e conta linhas inválidas |
+| Carga | `etl/carga.py` | `COPY` para tabela temporária + `INSERT ... ON CONFLICT DO NOTHING` (idempotente) |
+
+Se mais de 10% das linhas de um arquivo forem descartadas, a importação falha de propósito: provavelmente a ANP mudou o formato, e é melhor avisar do que gravar dados incompletos.
+
+_As instruções da API e do front-end serão adicionadas nas próximas etapas._
 
 ## Autor
 

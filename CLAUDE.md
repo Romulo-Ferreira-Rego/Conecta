@@ -129,6 +129,20 @@ Colunas conhecidas (**validar no primeiro download**, a ANP já mudou nomes entr
 
 Cuidados: separador `;`, decimal com vírgula, datas `dd/mm/aaaa`, possíveis problemas de encoding e valores vazios em "Valor de Compra".
 
+> **Validado na etapa 3 (30/10/2026)** — as colunas acima estão corretas em 2024–2026. Achados:
+> - Arquivos em `https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/shpc/`:
+>   semestrais `dsas/ca/ca-AAAA-0N.zip` (**ZIP** desde 2022; CSV até 2021) e **mensais**
+>   `dsan/AAAA/...-gasolina-etanol.csv` e `...-diesel-gnv.csv` (mais recentes que os semestrais).
+>   Nomes irregulares (erros de digitação, arquivos sem extensão): descobrir pelos links da página, período pelo texto do link.
+> - Encoding UTF-8 com BOM; CNPJ com espaço à esquerda; "Valor de Compra" sempre vazio.
+> - `ca-2025-02` traz o CNPJ **só com dígitos** (os demais com pontuação): o ETL padroniza para `00.000.000/0000-00`.
+> - `ca-2025-01` termina com ~9 mil linhas totalmente vazias.
+> - Há algumas linhas duplicadas (mesmo posto, produto e data) dentro do mesmo arquivo.
+> - O servidor recusa `HEAD` (403) e não envia `Last-Modified`; o tamanho é obtido com GET `Range: bytes=0-0`.
+>   Por isso `importacao.modificado_em` fica vazio e a detecção de mudança usa tamanho + hash.
+> - Volume: ~420 mil linhas e ~60 MB por semestre; 24 meses ≈ 1,9 milhão de linhas e ~275 MB.
+> - GLP fica **fora da v1** (decisão do Rômulo).
+
 ### 6.2 Tabelas
 
 ```sql
