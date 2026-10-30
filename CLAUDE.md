@@ -455,8 +455,10 @@ Commits intermediários dentro de uma etapa são permitidos, seguindo o mesmo pa
 - Explicar decisões técnicas de forma didática: o autor é estudante e quer aprender com o projeto.
 
 ## 13. Critérios de pronto (v1)
-- [ ] ETL carrega ao menos os últimos 2 anos de dados sem duplicar.
-- [ ] Dashboard funciona com todos os filtros no celular e no desktop.
-- [ ] Páginas institucionais e banner de cookies publicados.
-- [ ] Site no ar com link público.
-- [ ] README com descrição, prints, stack, como rodar e fonte dos dados.
+- [x] ETL carrega ao menos os últimos 2 anos de dados sem duplicar.
+- [x] Dashboard funciona com todos os filtros no celular e no desktop.
+- [x] Páginas institucionais e banner de cookies publicados.
+- [x] Site no ar com link público: https://conecta-seven-tau.vercel.app
+- [x] README com descrição, prints, stack, como rodar e fonte dos dados.
+
+> **Produção (etapa 7):** site na Vercel (https://conecta-seven-tau.vercel.app), API no Render (https://conecta-api-8bjr.onrender.com, região Virginia), banco no Neon (projeto conecta, aws-us-east-1, mesma região da API). A API usa o usuário somente leitura `conecta_api` (criado por `python -m db.criar_usuario_api --env-file .env.producao`); o ETL e o segredo do GitHub usam o dono `conecta_owner`. Produção mantém 24 meses (`--manter-meses 24` no workflow). Credenciais de produção ficam em `.env.producao` (ignorado pelo git) e no CREDENCIAIS.txt. Nunca rodar os testes com a `DATABASE_URL` de produção carregada.

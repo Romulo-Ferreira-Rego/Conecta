@@ -12,7 +12,7 @@ permissions:
 jobs:
   python:
     name: Banco, ETL e API (Python)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     services:
       postgres:
@@ -29,8 +29,8 @@ jobs:
       # Os testes criam e usam o banco conecta_test neste PostgreSQL temporário
       DATABASE_URL: postgresql://conecta:conecta@localhost:5432/conecta
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.14"
           cache: pip
@@ -40,14 +40,14 @@ jobs:
 
   frontend:
     name: Site (React)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
           cache: npm

@@ -1,8 +1,13 @@
 # Conecta
 
+[![Testes](https://github.com/Romulo-Ferreira-Rego/Conecta/actions/workflows/testes.yml/badge.svg)](https://github.com/Romulo-Ferreira-Rego/Conecta/actions/workflows/testes.yml)
+[![Atualizar dados ANP](https://github.com/Romulo-Ferreira-Rego/Conecta/actions/workflows/atualizar-dados.yml/badge.svg)](https://github.com/Romulo-Ferreira-Rego/Conecta/actions/workflows/atualizar-dados.yml)
+
 Site onde são disponibilizadas informações sobre combustíveis e notícias relacionadas, de forma mais simples e intuitiva.
 
-> **Status:** 🚧 em desenvolvimento (v1: Painel de Preços de Combustíveis)
+**🔗 Site no ar: [conecta-seven-tau.vercel.app](https://conecta-seven-tau.vercel.app)** · API: [documentação interativa](https://conecta-api-8bjr.onrender.com/docs)
+
+![Painel de preços de combustíveis do Conecta](docs/prints/painel-claro.png)
 
 ## Sobre o projeto
 
@@ -10,106 +15,105 @@ O **Conecta** é um portal de informações e notícias. A primeira versão come
 
 ### O problema
 
-A ANP (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) publica a série histórica de preços de combustíveis como dados abertos, mas em arquivos CSV grandes e pouco amigáveis. O Conecta transforma esses dados em gráficos, rankings e filtros simples, para qualquer pessoa consultar.
+A ANP (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) publica a série histórica de preços de combustíveis como dados abertos, mas em arquivos grandes e pouco amigáveis, com centenas de milhares de linhas. O Conecta transforma esses dados em gráficos, rankings e filtros simples, para qualquer pessoa consultar.
 
 **Público-alvo:** motoristas, motoristas de aplicativo, transportadores, estudantes e jornalistas.
 
-### Funcionalidades planejadas (v1)
+### Funcionalidades
 
-- Cards com o preço médio nacional por produto e a variação em relação ao período anterior
-- Gráfico da evolução do preço médio ao longo do tempo
-- Filtros por produto, estado, município e período
-- Rankings dos estados e municípios mais caros e mais baratos
-- Indicador "Etanol ou gasolina?" (regra dos 70%)
-- Atualização automática dos dados da ANP (job agendado)
-- Páginas "Sobre os dados", "Política de Privacidade" (LGPD) e "Sobre o projeto"
+- **Manchete gerada dos dados**, em linguagem jornalística ("Gasolina cai 1,6% no Maranhão em setembro")
+- **Cards** com o preço médio de gasolina, etanol, diesel S10 e GNV e a variação sobre o mês anterior
+- **Gráfico de evolução** com período de 6, 12 ou 24 meses ou intervalo personalizado (mínimo de 3 meses)
+- **Filtros** por combustível, estado, município e período, guardados na URL (qualquer consulta vira um link)
+- **Preço por estado** e **rankings** dos municípios e estados mais caros e mais baratos
+- **"Etanol ou gasolina?"**, com a regra dos 70%
+- **Atualização automática** semanal dos dados da ANP
+- Páginas **Sobre os dados**, **Política de Privacidade** (LGPD) e **Sobre o projeto**
+- **Tema claro e escuro**, responsivo a partir de 360 px
 
-## Stack
+| Tema escuro | Celular |
+|---|---|
+| ![Painel no tema escuro, filtrado pelo Maranhão](docs/prints/painel-escuro.png) | ![Painel no celular, etanol em São Paulo](docs/prints/celular.png) |
 
-| Camada | Tecnologia |
-|--------|-----------|
-| ETL | Python 3.14 + pandas |
-| Banco de dados | PostgreSQL |
-| Back-end | FastAPI + SQLAlchemy |
-| Front-end | React + Vite + TypeScript + Tailwind CSS |
-| Gráficos | Recharts |
-| Automação | GitHub Actions |
+![Gráfico de evolução e indicador etanol ou gasolina](docs/prints/graficos-claro.png)
 
-## Estrutura de pastas
+## Arquitetura
 
 ```
-├── etl/            # download, limpeza e carga dos arquivos da ANP
-│   ├── tests/
-│   └── data/raw/   # arquivos baixados (não versionados)
-├── backend/        # API REST (FastAPI)
-│   ├── app/
-│   └── tests/
-├── db/             # migrações do banco (Alembic) e testes do schema
-│   ├── migrations/
-│   └── tests/
-├── frontend/       # interface web (React + Vite)
-├── docs/           # diagramas e prints
-└── docker-compose.yml  # PostgreSQL local
+ ANP (dados abertos)        GitHub Actions (toda segunda, 6h)
+        │                              │
+        ▼                              ▼
+   ETL Python ──────────────► PostgreSQL (Neon) ◄──── API FastAPI (Render) ◄──── Site React (Vercel)
+ baixa, limpa e carrega       coletas + visão de        somente leitura,           gráficos, filtros
+ sem duplicar (idempotente)   médias mensais            médias prontas             e rankings
 ```
+
+| Camada | Tecnologia | Hospedagem |
+|--------|-----------|-----------|
+| ETL | Python 3.14 + pandas | GitHub Actions (semanal) |
+| Banco de dados | PostgreSQL 18 + Alembic | Neon |
+| API | FastAPI + SQLAlchemy | Render |
+| Site | React 19 + Vite + TypeScript + Tailwind CSS + Recharts + Motion | Vercel |
+| Testes | pytest · Vitest + Testing Library | GitHub Actions (a cada push) |
+
+### Destaques técnicos
+
+- **Importação idempotente:** `COPY` para tabela temporária + `INSERT ... ON CONFLICT DO NOTHING`; reimportar um arquivo nunca duplica registros.
+- **Atualização inteligente:** o job lê a página da ANP, compara tamanho e hash com o que já foi importado e só baixa o que mudou.
+- **Trava de qualidade:** se mais de 10% das linhas de um arquivo forem descartadas, a importação falha de propósito (provável mudança de formato da ANP).
+- **Médias ponderadas** pelo número de coletas e **visão materializada** com as médias mensais prontas: respostas da API em milissegundos.
+- **Segurança:** a API usa um usuário de banco **somente leitura**; CORS restrito ao site, limite de requisições por IP e cabeçalhos de segurança.
+- **Privacidade (LGPD):** nenhum cookie, logs sem IP, fonte hospedada no próprio site e banner com "Aceitar" e "Recusar" de mesmo destaque.
+- **Acessibilidade:** variação com seta e sinal (nunca só cor), tabela alternativa para cada gráfico, navegação por teclado e respeito à preferência por menos movimento.
+- **148 testes automatizados** rodando a cada push.
 
 ## Fonte dos dados
 
 [Série Histórica de Preços de Combustíveis, ANP](https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-de-precos-de-combustiveis), dados abertos do Governo Federal.
 
-## Como executar
+**Limitações:** os preços são médias mensais de um levantamento semanal por amostragem (cerca de 420 municípios), publicados pela ANP com algumas semanas de atraso. Não são preços em tempo real. O site em produção mantém os últimos 24 meses. Detalhes na página [Sobre os dados](https://conecta-seven-tau.vercel.app/sobre-os-dados).
+
+## Como executar localmente
 
 ### Pré-requisitos
 
 - [Git](https://git-scm.com/)
 - [Python 3.14](https://www.python.org/downloads/)
+- [Node.js](https://nodejs.org/) 24 ou mais recente
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-### 1. Configurar as variáveis de ambiente
+### 1. Variáveis de ambiente e banco
 
 ```bash
-cp .env.example .env
-# edite o .env e defina POSTGRES_PASSWORD (e a mesma senha na DATABASE_URL)
+cp .env.example .env          # defina POSTGRES_PASSWORD (e a mesma senha na DATABASE_URL)
+docker compose up -d          # liga o PostgreSQL (porta 5432)
 ```
 
-### 2. Subir o banco de dados
-
-```bash
-docker compose up -d      # liga o PostgreSQL (porta 5432)
-docker compose ps         # deve mostrar "healthy"
-```
-
-### 3. Criar o ambiente Python e as tabelas
+### 2. Ambiente Python, tabelas e dados
 
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Linux/macOS: source .venv/bin/activate
-pip install -r db/requirements.txt -r etl/requirements.txt
+pip install -r db/requirements.txt -r etl/requirements.txt -r backend/requirements.txt
 alembic -c db/alembic.ini upgrade head
-```
-
-### 4. Carregar os dados da ANP
-
-```bash
 python -m etl.atualizar --dry-run   # mostra o que seria baixado
 python -m etl.atualizar             # baixa e importa os últimos 24 meses (~5 min)
 ```
 
-O `atualizar` lê a página da ANP, compara com o que já foi importado e só baixa o que é novo ou mudou. Outras opções:
+Outras opções do ETL:
 
 ```bash
 python -m etl.atualizar --desde 2025-01        # muda o início da janela
+python -m etl.atualizar --manter-meses 24      # apaga coletas com mais de 24 meses (usado em produção)
 python -m etl.atualizar --verificar-hash       # confere o conteúdo mesmo com tamanho igual
 python -m etl.importar dsas/ca/ca-2026-01.zip  # importa um arquivo específico
 ```
 
-### 5. Rodar a API
+### 3. API
 
 ```bash
-pip install -r backend/requirements.txt
-uvicorn backend.app.main:app --reload
+uvicorn backend.app.main:app --reload    # http://localhost:8000/docs
 ```
-
-A documentação interativa (Swagger) fica em <http://localhost:8000/docs>.
 
 | Rota | Descrição |
 |------|-----------|
@@ -120,63 +124,53 @@ A documentação interativa (Swagger) fica em <http://localhost:8000/docs>.
 | `GET /api/serie?produto=&uf=&municipio=&inicio=AAAA-MM&fim=AAAA-MM` | Série mensal (média, mínimo, máximo) |
 | `GET /api/ranking?produto=&nivel=uf\|municipio&ordem=asc\|desc&limite=10&uf=` | UFs ou municípios mais caros/baratos |
 | `GET /api/etanol-gasolina?uf=&municipio=` | Etanol ou gasolina? (regra dos 70%) |
-| `GET /api/meta` | Data da última atualização dos dados |
+| `GET /api/meta` | Datas da última atualização e período disponível |
 
-Decisões importantes:
-
-- **Média ponderada:** médias de UF e do Brasil pesam cada município pelo número de coletas (equivale à média de todas as coletas).
-- **Ranking de municípios:** só entram cidades com pelo menos 10 coletas no mês, para evitar distorções por amostras pequenas.
-- **Proteções:** somente `GET`, CORS restrito ao front-end, limite de 60 requisições/minuto por IP, cache HTTP de 1 hora e logs sem IP (LGPD).
-
-### 6. Rodar o site (front-end)
-
-Com a API ligada, em outro terminal:
+### 4. Site
 
 ```bash
 cd frontend
 npm install
-npm run dev        # abre em http://localhost:5173
+npm run dev        # http://localhost:5173
 ```
 
 O endereço da API vem de `VITE_API_URL` no `.env` da raiz (padrão: `http://localhost:8000`).
 
-| Comando | O que faz |
-|---------|-----------|
-| `npm run dev` | Servidor de desenvolvimento com recarga automática |
-| `npm test` | Testes (Vitest + Testing Library) |
-| `npm run lint` | Verificação de código (oxlint) |
-| `npm run build` | Versão de produção em `frontend/dist/` |
-
-Destaques do front-end:
-
-- **Filtros na URL** (`?produto=etanol&uf=MA`): qualquer consulta pode ser compartilhada por link.
-- **Período do gráfico:** atalhos (6, 12, 24 meses, tudo) ou intervalo personalizado de no mínimo 3 meses, limitado aos meses com dados.
-- **Manchete gerada dos dados**, em linguagem jornalística ("Gasolina cai 1,6% no Maranhão em setembro").
-- **Acessibilidade:** variação com seta e sinal (nunca só cor), tabela alternativa para cada gráfico, navegação por teclado, respeito à preferência por menos movimento.
-- **Tema claro e escuro**, com a escolha guardada só no navegador.
-- **Privacidade:** nenhum cookie; fonte Inter hospedada no próprio site (o navegador do visitante não contata o Google); banner com "Aceitar" e "Recusar" de mesmo destaque, que controla qualquer recurso opcional futuro.
-- **Páginas institucionais:** Sobre os dados (`/sobre-os-dados`), Política de Privacidade (`/privacidade`) e Sobre o projeto (`/sobre`).
-
-### 7. Rodar os testes
+### 5. Testes
 
 ```bash
-python -m pytest -v          # banco, ETL e API
-cd frontend && npm test      # front-end
+python -m pytest -v                  # banco, ETL e API
+cd frontend && npm test              # site
 ```
 
-Os testes Python usam um banco separado (`conecta_test`), criado automaticamente no mesmo PostgreSQL, e nunca alteram os dados de desenvolvimento.
+Os testes Python usam um banco separado (`conecta_test`), criado automaticamente, e nunca alteram os dados de desenvolvimento.
 
-### Como o ETL funciona
+## Deploy
 
-| Etapa | Módulo | O que faz |
-|-------|--------|-----------|
-| Descoberta | `etl/fontes.py` | Lê os links da página da ANP; o período vem do texto do link |
-| Download | `etl/download.py` | Baixa para `etl/data/raw/` e calcula o hash SHA-256 |
-| Extração | `etl/extracao.py` | Lê CSV ou CSV dentro de ZIP (UTF-8 ou latin-1) |
-| Limpeza | `etl/limpeza.py` | Padroniza textos, CNPJ, datas e preços; descarta e conta linhas inválidas |
-| Carga | `etl/carga.py` | `COPY` para tabela temporária + `INSERT ... ON CONFLICT DO NOTHING` (idempotente) |
+| Serviço | Configuração | Variáveis (definidas no painel, nunca no código) |
+|---|---|---|
+| **Neon** (banco) | `alembic upgrade head` + `python -m db.criar_usuario_api` | — |
+| **Render** (API) | [`render.yaml`](render.yaml) (Blueprint) | `DATABASE_URL` (usuário somente leitura), `CORS_ORIGINS` |
+| **Vercel** (site) | [`frontend/vercel.json`](frontend/vercel.json), raiz `frontend/` | `VITE_API_URL` |
+| **GitHub Actions** | [`atualizar-dados.yml`](.github/workflows/atualizar-dados.yml), [`testes.yml`](.github/workflows/testes.yml) | Segredo `DATABASE_URL` (usuário com escrita) |
 
-Se mais de 10% das linhas de um arquivo forem descartadas, a importação falha de propósito: provavelmente a ANP mudou o formato, e é melhor avisar do que gravar dados incompletos.
+**Observações dos planos gratuitos:**
+
+- A API no Render "dorme" após 15 minutos sem acesso e leva até um minuto para acordar; o site mostra um aviso enquanto isso.
+- O GitHub desativa workflows agendados de repositórios públicos após 60 dias sem atividade. Se isso acontecer, reative em **Actions → Atualizar dados ANP → Enable workflow**.
+
+## Estrutura de pastas
+
+```
+├── etl/            # download, limpeza e carga dos arquivos da ANP
+├── db/             # migrações (Alembic), usuário somente leitura e testes do schema
+├── backend/        # API REST (FastAPI)
+├── frontend/       # site (React + Vite)
+├── docs/prints/    # capturas de tela
+├── .github/        # workflows de testes e atualização semanal
+├── docker-compose.yml  # PostgreSQL local
+└── render.yaml     # configuração da API no Render
+```
 
 ## Autor
 
