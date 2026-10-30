@@ -80,5 +80,6 @@ class EtanolGasolina(BaseModel):
 
 class Meta(BaseModel):
     ultima_importacao: datetime | None
+    primeira_coleta: date | None = Field(description="Início dos dados disponíveis (limite do período personalizado)")
     ultima_coleta: date | None
     fonte: str

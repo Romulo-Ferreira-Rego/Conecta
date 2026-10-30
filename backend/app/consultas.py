@@ -303,6 +303,7 @@ def meta(conn: Connection) -> dict:
             SELECT
                 (SELECT MAX(data_importacao) FROM dados.importacao WHERE status = 'sucesso')
                     AS ultima_importacao,
+                (SELECT MIN(data_coleta) FROM dados.coleta_preco) AS primeira_coleta,
                 (SELECT MAX(data_coleta) FROM dados.coleta_preco) AS ultima_coleta
             """
         )

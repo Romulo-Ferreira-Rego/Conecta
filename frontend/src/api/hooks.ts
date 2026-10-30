@@ -46,10 +46,10 @@ export function useResumo(local: Local) {
   })
 }
 
-export function useSerie(produto: string, local: Local, inicio?: string) {
+export function useSerie(produto: string, local: Local, inicio?: string, fim?: string) {
   return useQuery({
-    queryKey: ['serie', produto, local, inicio],
-    queryFn: ({ signal }) => apiGet<Serie>('/serie', { produto, ...local, inicio }, signal),
+    queryKey: ['serie', produto, local, inicio, fim],
+    queryFn: ({ signal }) => apiGet<Serie>('/serie', { produto, ...local, inicio, fim }, signal),
     placeholderData: keepPreviousData,
   })
 }

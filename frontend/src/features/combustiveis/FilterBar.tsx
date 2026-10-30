@@ -3,10 +3,10 @@ import { useState } from 'react'
 import { useEstados, useMunicipios, useProdutos } from '../../api/hooks'
 import { titleCase } from '../../lib/format'
 import { productLabel } from '../../lib/lugares'
-import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Select } from '../../components/ui/Select'
 import { Sheet } from '../../components/ui/Sheet'
-import { PERIODOS, useFiltros, type Periodo } from './useFiltros'
+import { PeriodoControl } from './PeriodoControl'
+import { useFiltros } from './useFiltros'
 import { useLocalNome } from './useLocalNome'
 
 function Fields({ idPrefix }: { idPrefix: string }) {
@@ -62,22 +62,6 @@ function Fields({ idPrefix }: { idPrefix: string }) {
   )
 }
 
-function PeriodoControl({ fullWidth = false }: { fullWidth?: boolean }) {
-  const { filtros, update } = useFiltros()
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted">Período do gráfico</span>
-      <SegmentedControl<Periodo>
-        label="Período do gráfico"
-        value={filtros.periodo}
-        onChange={(periodo) => update({ periodo })}
-        options={PERIODOS.map(({ value, label }) => ({ value, label }))}
-        fullWidth={fullWidth}
-      />
-    </div>
-  )
-}
-
 /** Barra de filtros: em linha no desktop; no celular, um resumo que abre a gaveta. */
 export function FilterBar() {
   const [open, setOpen] = useState(false)
@@ -88,11 +72,11 @@ export function FilterBar() {
   return (
     <div className="sticky top-16 z-30 border-b border-line bg-bg py-3 sm:top-24">
       {/* Desktop */}
-      <div className="hidden items-end gap-3 lg:flex">
+      <div className="hidden items-start gap-3 lg:flex">
         <div className="grid flex-1 grid-cols-3 gap-3">
           <Fields idPrefix="barra" />
         </div>
-        <PeriodoControl />
+        <PeriodoControl idPrefix="barra" />
       </div>
 
       {/* Celular e tablet */}
@@ -119,7 +103,7 @@ export function FilterBar() {
       <Sheet open={open} onClose={() => setOpen(false)} title="Filtros">
         <div className="flex flex-col gap-4">
           <Fields idPrefix="gaveta" />
-          <PeriodoControl fullWidth />
+          <PeriodoControl idPrefix="gaveta" fullWidth />
           <button
             type="button"
             onClick={() => setOpen(false)}

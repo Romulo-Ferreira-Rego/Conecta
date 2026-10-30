@@ -19,7 +19,7 @@ import { Panel } from '../../components/ui/Panel'
 import { EmptyState, ErrorState, Skeleton } from '../../components/ui/States'
 import { ChartOrTable, DataTable } from './ChartFrame'
 import { useTableToggle, type TooltipLike } from './useTableToggle'
-import { inicioDoPeriodo, PERIODOS, useFiltros } from './useFiltros'
+import { PERIODO_PADRAO, PERIODOS, resolverPeriodo, useFiltros } from './useFiltros'
 import { useLocalNome } from './useLocalNome'
 
 function SerieTooltip({ active, payload }: TooltipLike) {
@@ -46,11 +46,24 @@ export function SerieChart() {
   const { filtros, local } = useFiltros()
   const lugar = useLocalNome(local)
   const { data: meta } = useMeta()
-  const inicio = inicioDoPeriodo(filtros.periodo, meta?.ultima_coleta)
-  const { data, isPending, isError, error, refetch, isPlaceholderData } = useSerie(filtros.produto, local, inicio)
+  const periodoEfetivo = resolverPeriodo(filtros, meta?.primeira_coleta, meta?.ultima_coleta)
+  const { data, isPending, isError, error, refetch, isPlaceholderData } = useSerie(
+    filtros.produto,
+    local,
+    periodoEfetivo.inicio,
+    periodoEfetivo.fim,
+  )
   const { table, button } = useTableToggle()
   const pontos = data?.pontos ?? []
-  const periodo = PERIODOS.find((p) => p.value === filtros.periodo)?.label.toLowerCase()
+
+  let subtitulo = 'Preço médio mensal'
+  if (periodoEfetivo.personalizado && periodoEfetivo.inicio && periodoEfetivo.fim) {
+    subtitulo += `, de ${formatMonthLong(`${periodoEfetivo.inicio}-01`)} a ${formatMonthLong(`${periodoEfetivo.fim}-01`)}`
+  } else {
+    // Personalizado inválido (fora dos dados) cai no período padrão
+    const exibido = filtros.periodo === 'personalizado' ? PERIODO_PADRAO : filtros.periodo
+    if (exibido !== 'tudo') subtitulo += `, últimos ${PERIODOS.find((p) => p.value === exibido)?.label}`
+  }
 
   const values = pontos.map((p) => p.preco_medio)
   const min = Math.min(...values)
@@ -68,7 +81,7 @@ export function SerieChart() {
       id="evolucao"
       eyebrow="Evolução"
       title={`${productLabel(filtros.produto)} ${lugar.frase}`}
-      description={`Preço médio mensal${periodo && filtros.periodo !== 'tudo' ? `, últimos ${periodo}` : ''}`}
+      description={subtitulo}
       actions={button}
     >
       {isError ? (

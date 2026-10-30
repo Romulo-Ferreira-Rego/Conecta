@@ -8,6 +8,7 @@ from backend.tests.conftest import make_client
 def test_meta_shows_last_import_and_collection(client):
     body = client.get("/api/meta").json()
     assert body["ultima_importacao"].startswith("2026-10-27T")
+    assert body["primeira_coleta"] == "2026-08-01"
     assert body["ultima_coleta"] == "2026-09-30"
     assert "gov.br/anp" in body["fonte"]
 

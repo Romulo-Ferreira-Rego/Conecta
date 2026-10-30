@@ -74,6 +74,7 @@ export interface EtanolGasolina {
 
 export interface Meta {
   ultima_importacao: string | null
+  primeira_coleta: string | null
   ultima_coleta: string | null
   fonte: string
 }
