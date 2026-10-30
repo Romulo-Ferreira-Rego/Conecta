@@ -1,0 +1,39 @@
+# --- Variáveis sensíveis (RNF05) ---
+.env
+.env.*
+!.env.example
+
+# --- Dados brutos da ANP (arquivos grandes, baixados pelo ETL) ---
+etl/data/raw/*
+!etl/data/raw/.gitkeep
+*.csv
+*.zip
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# --- Node / front-end ---
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# --- Editores e sistema operacional ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+.DS_Store
+
+# --- Configurações locais do Claude Code ---
+.claude/settings.local.json
