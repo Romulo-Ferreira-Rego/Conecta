@@ -128,13 +128,41 @@ Decisões importantes:
 - **Ranking de municípios:** só entram cidades com pelo menos 10 coletas no mês, para evitar distorções por amostras pequenas.
 - **Proteções:** somente `GET`, CORS restrito ao front-end, limite de 60 requisições/minuto por IP, cache HTTP de 1 hora e logs sem IP (LGPD).
 
-### 6. Rodar os testes
+### 6. Rodar o site (front-end)
+
+Com a API ligada, em outro terminal:
 
 ```bash
-python -m pytest -v
+cd frontend
+npm install
+npm run dev        # abre em http://localhost:5173
 ```
 
-Os testes usam um banco separado (`conecta_test`), criado automaticamente no mesmo PostgreSQL, e nunca alteram os dados de desenvolvimento.
+O endereço da API vem de `VITE_API_URL` no `.env` da raiz (padrão: `http://localhost:8000`).
+
+| Comando | O que faz |
+|---------|-----------|
+| `npm run dev` | Servidor de desenvolvimento com recarga automática |
+| `npm test` | Testes (Vitest + Testing Library) |
+| `npm run lint` | Verificação de código (oxlint) |
+| `npm run build` | Versão de produção em `frontend/dist/` |
+
+Destaques do front-end:
+
+- **Filtros na URL** (`?produto=etanol&uf=MA`): qualquer consulta pode ser compartilhada por link.
+- **Manchete gerada dos dados**, em linguagem jornalística ("Gasolina cai 1,6% no Maranhão em setembro").
+- **Acessibilidade:** variação com seta e sinal (nunca só cor), tabela alternativa para cada gráfico, navegação por teclado, respeito à preferência por menos movimento.
+- **Tema claro e escuro**, com a escolha guardada só no navegador.
+- **Privacidade:** fonte Inter hospedada no próprio site (o navegador do visitante não contata o Google).
+
+### 7. Rodar os testes
+
+```bash
+python -m pytest -v          # banco, ETL e API
+cd frontend && npm test      # front-end
+```
+
+Os testes Python usam um banco separado (`conecta_test`), criado automaticamente no mesmo PostgreSQL, e nunca alteram os dados de desenvolvimento.
 
 ### Como o ETL funciona
 
@@ -147,8 +175,6 @@ Os testes usam um banco separado (`conecta_test`), criado automaticamente no mes
 | Carga | `etl/carga.py` | `COPY` para tabela temporária + `INSERT ... ON CONFLICT DO NOTHING` (idempotente) |
 
 Se mais de 10% das linhas de um arquivo forem descartadas, a importação falha de propósito: provavelmente a ANP mudou o formato, e é melhor avisar do que gravar dados incompletos.
-
-_As instruções do front-end serão adicionadas na próxima etapa._
 
 ## Autor
 

@@ -1,0 +1,152 @@
+@import 'tailwindcss';
+
+/* O tema escuro é controlado pelo atributo data-theme no <html> (botão de tema). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Tokens de design. As cores mudam por tema aqui, num lugar só; os componentes
+ * usam os papéis (bg-surface, text-ink...) e não precisam de variantes dark:.
+ * Paleta da seção 8.2 do CLAUDE.md, com ajustes de contraste (AA) para texto.
+ */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --brand: #0f766e;
+  --brand-ink: #0f766e;
+  --brand-soft: #ccfbf1;
+  --accent: #f59e0b;
+  --accent-ink: #b45309;
+  /* Alta e queda de preço: texto com contraste AA (o verde #16A34A não atinge 4,5:1 em fundo branco) */
+  --up: #dc2626;
+  --down: #15803d;
+  /* Gráficos (validados com o script do guia de visualização) */
+  --chart-series: #0d9488;
+  --chart-highlight: #d97706;
+  --chart-grid: #e2e8f0;
+  --chart-axis: #94a3b8;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #0f172a;
+  --surface: #131d33;
+  --surface-2: #1a2540;
+  --ink: #e2e8f0;
+  --ink-2: #cbd5e1;
+  --muted: #94a3b8;
+  --line: #233049;
+  --line-strong: #334360;
+  --brand: #14b8a6;
+  --brand-ink: #2dd4bf;
+  --brand-soft: #134e4a;
+  --accent: #f59e0b;
+  --accent-ink: #fbbf24;
+  --up: #f87171;
+  --down: #4ade80;
+  --chart-series: #0d9e8f;
+  --chart-highlight: #d97706;
+  --chart-grid: #233049;
+  --chart-axis: #64748b;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-bg font-sans text-ink;
+    font-feature-settings: 'cv11', 'ss01'; /* "a" e "1" mais legíveis no Inter */
+  }
+  ::selection {
+    background: var(--brand-soft);
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  /* Colunas de números alinhados (tabelas, eixos). Números grandes usam algarismos proporcionais. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold tracking-[0.12em] text-muted uppercase;
+  }
+}
+
+/* Gaveta (filtros no celular): sobe da base e escurece o fundo suavemente. */
+dialog.sheet[open] {
+  animation: sheet-in 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+dialog.sheet[open]::backdrop {
+  background: rgb(15 23 42 / 0.45);
+  animation: backdrop-in 0.3s ease-out;
+}
+dialog.sheet[data-closing] {
+  animation: sheet-out 0.26s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+dialog.sheet[data-closing]::backdrop {
+  animation: backdrop-out 0.26s ease-in forwards;
+}
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+}
+@keyframes sheet-out {
+  to { transform: translateY(100%); }
+}
+@keyframes backdrop-in {
+  from { opacity: 0; }
+}
+@keyframes backdrop-out {
+  to { opacity: 0; }
+}
+
+/* Troca de tema com revelação circular a partir do botão (View Transitions API). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

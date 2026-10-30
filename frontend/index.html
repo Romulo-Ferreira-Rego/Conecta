@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#F8FAFC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F172A" media="(prefers-color-scheme: dark)" />
+
+    <title>Conecta Dados — Preços de combustíveis no Brasil</title>
+    <meta
+      name="description"
+      content="Evolução e comparação dos preços de gasolina, etanol, diesel e GNV por estado e município, com dados abertos da ANP."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Conecta" />
+    <meta property="og:title" content="Conecta Dados — Preços de combustíveis no Brasil" />
+    <meta
+      property="og:description"
+      content="Gráficos, rankings e comparações dos preços de combustíveis com dados abertos da ANP."
+    />
+
+    <!--
+      Aplica o tema antes da primeira pintura, para não "piscar" claro ao abrir no modo escuro.
+      A escolha manual fica no localStorage (preferência do visitante, não é dado pessoal).
+    -->
+    <script>
+      try {
+        var saved = localStorage.getItem('conecta-tema')
+        var dark = saved ? saved === 'escuro' : matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -321,6 +321,19 @@ Nunca usar só a cor para indicar alta/queda: incluir seta (▲▼) e sinal (+/�
 - Desktop: grid de 12 colunas, cards em 4 colunas, gráficos lado a lado.
 - Estados de carregamento (skeleton), vazio ("Sem dados para este filtro") e erro.
 
+### 8.6 Implementado na etapa 5 (`frontend/`)
+- **Stack:** React 19 + Vite 8 + TypeScript 7 + Tailwind 4 + Recharts 3 + TanStack Query 5 + React Router 8 + Motion (animações). Lint: oxlint. Testes: Vitest + Testing Library.
+- **Direção visual:** editorial e contida (portal de notícias): linhas finas (hairlines) em vez de sombras, rótulos pequenos em caixa alta ("eyebrow"), manchete gerada dos dados, sem gradientes decorativos nem "glassmorphism".
+- **Logo:** "C" aberto cujas pontas são dois nós (um branco, um âmbar), sobre quadrado verde-petróleo; o traço se desenha ao carregar. Arquivo: `frontend/public/favicon.svg` e `components/layout/Logo.tsx`.
+- **Tokens de cor** em `src/index.css` (variáveis CSS por tema; componentes usam papéis como `bg-surface`, `text-ink`).
+  Ajustes de contraste AA: texto de queda usa `#15803D` (o `#16A34A` não atinge 4,5:1 em fundo branco).
+  Cores de gráfico validadas com o script do guia de dataviz: série `#0D9488` (claro) / `#0D9E8F` (escuro), destaque `#D97706`.
+- **Gráficos:** barras sempre a partir do zero (nunca cortar o eixo); eixo Y da linha com passos 1/2/5; rótulo só no último valor; tabela alternativa ("Ver tabela") em todo gráfico.
+- **Animações:** entrada em cascata, números que "rolam", indicador deslizante (layout animation), gaveta com `<dialog>` nativo, troca de tema com revelação circular (View Transitions). Tudo respeita `prefers-reduced-motion`.
+- **Filtros na URL** (`produto`, `uf`, `municipio`, `periodo`); `periodo` = 6m | 12m | 24m | tudo (padrão 12m).
+- O painel é carregado sob demanda (`lazy`), separando os gráficos do pacote inicial.
+- Páginas institucionais são provisórias ("Em breve") até a etapa 6.
+
 ---
 
 ## 9. API (endpoints iniciais)

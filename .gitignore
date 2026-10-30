@@ -38,3 +38,6 @@ Thumbs.db
 
 # --- Configurações locais do Claude Code ---
 .claude/settings.local.json
+
+# --- Capturas de tela de testes no navegador (Playwright) ---
+.playwright-mcp/
