@@ -68,6 +68,28 @@ class Ranking(BaseModel):
     itens: list[ItemRanking]
 
 
+class AreaMapa(BaseModel):
+    uf: str = Field(examples=["MA"])
+    nome: str = Field(examples=["Maranhão"])
+    municipio_id: int | None = Field(None, description="Só no nível município")
+    codigo_ibge: int | None = Field(None, description="Código IBGE do município (liga ao desenho do mapa)")
+    preco_medio: float
+    qtd_coletas: int
+    preco_anterior: float | None = None
+    variacao_percentual: float | None = Field(None, description="Variação em relação ao mês anterior")
+
+
+class Mapa(BaseModel):
+    produto: str
+    unidade: str
+    nivel: Literal["uf", "municipio"]
+    uf: str | None = Field(None, description="UF aberta no mapa (nível município)")
+    mes: date | None
+    mes_anterior: date | None
+    min_coletas: int = Field(description="Abaixo disso, a amostra é considerada pequena")
+    itens: list[AreaMapa]
+
+
 class EtanolGasolina(BaseModel):
     mes: date
     preco_etanol: float

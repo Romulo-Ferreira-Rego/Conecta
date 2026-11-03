@@ -25,7 +25,8 @@ A ANP (Agência Nacional do Petróleo, Gás Natural e Biocombustíveis) publica 
 - **Cards** com o preço médio de gasolina, etanol, diesel S10 e GNV e a variação sobre o mês anterior
 - **Gráfico de evolução** com período de 6, 12 ou 24 meses ou intervalo personalizado (mínimo de 3 meses)
 - **Filtros** por combustível, estado, município e período, guardados na URL (qualquer consulta vira um link)
-- **Preço por estado** e **rankings** dos municípios e estados mais caros e mais baratos
+- **Mapa interativo do Brasil**: cada estado pintado pelo preço médio (ou pela variação); ao clicar, o mapa dá zoom no estado e mostra os municípios, e os que não têm coletas aparecem como "dados insuficientes"
+- **Rankings** dos municípios e estados mais caros e mais baratos
 - **"Etanol ou gasolina?"**, com a regra dos 70%
 - **Atualização automática** semanal dos dados da ANP
 - Páginas **Sobre os dados**, **Política de Privacidade** (LGPD) e **Sobre o projeto**
@@ -107,6 +108,8 @@ python -m etl.atualizar --desde 2025-01        # muda o início da janela
 python -m etl.atualizar --manter-meses 24      # apaga coletas com mais de 24 meses (usado em produção)
 python -m etl.atualizar --verificar-hash       # confere o conteúdo mesmo com tamanho igual
 python -m etl.importar dsas/ca/ca-2026-01.zip  # importa um arquivo específico
+python -m etl.ibge --vincular                  # liga municípios já carregados ao código IBGE (mapa)
+python -m etl.ibge                             # baixa de novo as malhas e a lista de municípios do IBGE
 ```
 
 ### 3. API
@@ -124,6 +127,7 @@ uvicorn backend.app.main:app --reload    # http://localhost:8000/docs
 | `GET /api/serie?produto=&uf=&municipio=&inicio=AAAA-MM&fim=AAAA-MM` | Série mensal (média, mínimo, máximo) |
 | `GET /api/ranking?produto=&nivel=uf\|municipio&ordem=asc\|desc&limite=10&uf=` | UFs ou municípios mais caros/baratos |
 | `GET /api/etanol-gasolina?uf=&municipio=` | Etanol ou gasolina? (regra dos 70%) |
+| `GET /api/mapa?produto=&uf=` | Preço médio e variação de cada UF ou, com `uf`, de cada município (mapa) |
 | `GET /api/meta` | Datas da última atualização e período disponível |
 
 ### 4. Site

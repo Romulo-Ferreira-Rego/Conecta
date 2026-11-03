@@ -26,6 +26,7 @@ from backend.app.config import Settings
 from backend.app.database import get_connection
 from backend.app.main import create_app
 from db.tests.conftest import alembic_config, conn, engine, test_database_url  # noqa: F401
+from etl.ibge import link_municipalities
 
 PRODUCTS = {
     "GASOLINA": "R$ / litro",
@@ -78,6 +79,8 @@ def seeded(conn) -> dict:
             "VALUES (:cnpj, :nome, :m) RETURNING id",
             cnpj=f"{len(city_ids):02d}.000.000/0001-00", nome=f"POSTO {cidade}", m=city_ids[cidade],
         )
+
+    link_municipalities(conn)  # código IBGE, usado pelo /api/mapa
 
     rows = [
         {

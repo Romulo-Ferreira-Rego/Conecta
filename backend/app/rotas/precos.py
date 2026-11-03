@@ -18,7 +18,7 @@ from backend.app.rotas.filtros import (
     require_product,
     require_state,
 )
-from backend.app.schemas import EtanolGasolina, Ranking, Resumo, Serie
+from backend.app.schemas import EtanolGasolina, Mapa, Ranking, Resumo, Serie
 
 router = APIRouter(tags=["Preços"])
 Conn = Annotated[Connection, Depends(get_connection)]
@@ -76,6 +76,36 @@ def ranking(
             estado_id=estado_id, min_coletas=settings.ranking_min_coletas,
         )
     return {"produto": info["codigo"], "nivel": nivel, "ordem": ordem, "mes": mes, "itens": itens}
+
+
+@router.get(
+    "/mapa",
+    response_model=Mapa,
+    summary="Preço médio por UF ou por município (mapa)",
+    description="Usa o mês mais recente. Sem `uf`, devolve as UFs; com `uf`, todos os "
+    "municípios com coletas naquele estado. Municípios sem coletas não aparecem na lista.",
+)
+def mapa(
+    conn: Conn,
+    produto: ProdutoParam,
+    settings: Annotated[Settings, Depends(get_settings)],
+    uf: UfParam = None,
+):
+    info = require_product(conn, produto)
+    estado_id = require_state(conn, uf) if uf else None
+    mes = consultas.latest_month(conn, info["id"])
+    mes_anterior = consultas.previous_month(conn, info["id"], mes) if mes else None
+    itens = consultas.map_prices(conn, info["id"], mes, mes_anterior, estado_id) if mes else []
+    return {
+        "produto": info["codigo"],
+        "unidade": info["unidade"],
+        "nivel": "municipio" if uf else "uf",
+        "uf": uf.upper() if uf else None,
+        "mes": mes,
+        "mes_anterior": mes_anterior,
+        "min_coletas": settings.ranking_min_coletas,
+        "itens": itens,
+    }
 
 
 @router.get(

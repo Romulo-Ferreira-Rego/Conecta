@@ -18,6 +18,7 @@ from datetime import date
 
 from sqlalchemy import Connection, Engine, text
 
+from etl.ibge import link_municipalities
 from etl.limpeza import CleanResult
 
 log = logging.getLogger(__name__)
@@ -160,6 +161,7 @@ def load(conn: Connection, cleaned: CleanResult, arquivo: str, size: int | None,
     _copy_to_staging(conn, cleaned)
     for statement in DIMENSION_STATEMENTS:
         conn.exec_driver_sql(statement)
+    link_municipalities(conn)  # código IBGE dos municípios novos (usado pelo mapa)
 
     inserted = conn.execute(INSERT_COLETAS, {"importacao_id": importacao_id}).rowcount
     conn.execute(UPDATE_INSERTED, {"inseridas": inserted, "id": importacao_id})

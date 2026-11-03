@@ -169,3 +169,47 @@ def test_etanol_gasolina_without_data_returns_null(client, seeded):
 )
 def test_seventy_percent_rule(etanol, gasolina, expected):
     assert recommend_fuel(etanol, gasolina)[1] == expected
+
+
+# --- /api/mapa -----------------------------------------------------------------
+
+def test_mapa_by_state_lists_states_with_data(client):
+    body = client.get("/api/mapa", params={"produto": "gasolina"}).json()
+    assert body["nivel"] == "uf"
+    assert body["mes"] == "2026-09-01"
+    assert body["mes_anterior"] == "2026-08-01"
+    assert body["min_coletas"] == 10
+    precos = {item["uf"]: item["preco_medio"] for item in body["itens"]}
+    assert precos == pytest.approx({"MA": 6.30, "PI": 7.00, "SP": 6.10})
+
+
+def test_mapa_state_variation_against_previous_month(client):
+    itens = {i["uf"]: i for i in client.get("/api/mapa", params={"produto": "gasolina"}).json()["itens"]}
+    # Em agosto só São Luís tinha coletas no MA (5,80); em setembro o MA ficou em 6,30
+    assert itens["MA"]["preco_anterior"] == pytest.approx(5.80)
+    assert itens["MA"]["variacao_percentual"] == pytest.approx(8.62)
+    assert itens["SP"]["variacao_percentual"] is None  # SP não tinha coletas em agosto
+
+
+def test_mapa_by_city_includes_ibge_code_and_small_samples(client, seeded):
+    body = client.get("/api/mapa", params={"produto": "gasolina", "uf": "ma"}).json()
+    assert body["nivel"] == "municipio"
+    assert body["uf"] == "MA"
+    assert [(i["nome"], i["codigo_ibge"], i["municipio_id"]) for i in body["itens"]] == [
+        ("IMPERATRIZ", 2105302, seeded["IMPERATRIZ"]),
+        ("SAO LUIS", 2111300, seeded["SAO LUIS"]),
+    ]
+
+    # Teresina tem só 2 coletas: entra no mapa (o site avisa que a amostra é pequena)
+    [teresina] = client.get("/api/mapa", params={"produto": "gasolina", "uf": "PI"}).json()["itens"]
+    assert teresina["qtd_coletas"] == 2
+
+
+def test_mapa_product_without_data_is_empty(client):
+    body = client.get("/api/mapa", params={"produto": "diesel-s10"}).json()
+    assert body["mes"] is None
+    assert body["itens"] == []
+
+
+def test_mapa_unknown_state_returns_404(client):
+    assert client.get("/api/mapa", params={"produto": "gasolina", "uf": "XX"}).status_code == 404

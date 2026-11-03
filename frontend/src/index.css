@@ -30,6 +30,25 @@
   --chart-highlight: #d97706;
   --chart-grid: #e2e8f0;
   --chart-axis: #94a3b8;
+  /*
+   * Mapa: escala sequencial de um só tom para o preço (claro = barato, escuro = caro)
+   * e divergente para a variação (verde = queda, cinza = estável, vermelho = alta).
+   */
+  --map-seq-1: #d5f3ee;
+  --map-seq-2: #a3e3d8;
+  --map-seq-3: #6cccbd;
+  --map-seq-4: #35ab9c;
+  --map-seq-5: #12857a;
+  --map-seq-6: #0b5f58;
+  --map-div-1: #1a7f45;
+  --map-div-2: #5bb07c;
+  --map-div-3: #b5dcc2;
+  --map-div-4: #e5e7eb;
+  --map-div-5: #f3b8ae;
+  --map-div-6: #e06a5b;
+  --map-div-7: #b42318;
+  --map-empty: #eef2f6;
+  --map-hatch: #b6c2d1;
   color-scheme: light;
 }
 
@@ -53,6 +72,22 @@
   --chart-highlight: #d97706;
   --chart-grid: #233049;
   --chart-axis: #64748b;
+  /* No escuro a âncora da escala inverte: barato fica perto do fundo, caro fica mais claro. */
+  --map-seq-1: #16403f;
+  --map-seq-2: #165e58;
+  --map-seq-3: #177d73;
+  --map-seq-4: #22a090;
+  --map-seq-5: #4cc4b3;
+  --map-seq-6: #95e6d8;
+  --map-div-1: #6fd394;
+  --map-div-2: #3b9a5f;
+  --map-div-3: #22573a;
+  --map-div-4: #3a4458;
+  --map-div-5: #6a2d29;
+  --map-div-6: #c2534a;
+  --map-div-7: #f59a8f;
+  --map-empty: #1b2641;
+  --map-hatch: #50638a;
   color-scheme: dark;
 }
 

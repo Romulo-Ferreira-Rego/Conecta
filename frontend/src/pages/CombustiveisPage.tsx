@@ -4,10 +4,10 @@ import { stagger } from '../lib/motion'
 import { EtanolIndicator } from '../features/combustiveis/EtanolIndicator'
 import { FilterBar } from '../features/combustiveis/FilterBar'
 import { Manchete } from '../features/combustiveis/Manchete'
+import { MapaBrasil } from '../features/combustiveis/mapa/MapaBrasil'
 import { PriceCards } from '../features/combustiveis/PriceCards'
 import { Rankings } from '../features/combustiveis/Rankings'
 import { SerieChart } from '../features/combustiveis/SerieChart'
-import { UfChart } from '../features/combustiveis/UfChart'
 
 export function CombustiveisPage() {
   return (
@@ -35,10 +35,10 @@ export function CombustiveisPage() {
           </div>
 
           <div className="grid items-start gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-5">
-              <UfChart />
-            </div>
             <div className="lg:col-span-7">
+              <MapaBrasil />
+            </div>
+            <div className="lg:col-span-5">
               <Rankings />
             </div>
           </div>

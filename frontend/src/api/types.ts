@@ -78,3 +78,27 @@ export interface Meta {
   ultima_coleta: string | null
   fonte: string
 }
+
+export interface AreaMapa {
+  uf: string
+  nome: string
+  /** Só no nível município */
+  municipio_id: number | null
+  codigo_ibge: number | null
+  preco_medio: number
+  qtd_coletas: number
+  preco_anterior: number | null
+  variacao_percentual: number | null
+}
+
+export interface Mapa {
+  produto: string
+  unidade: string
+  nivel: 'uf' | 'municipio'
+  uf: string | null
+  mes: string | null
+  mes_anterior: string | null
+  /** Abaixo disso, a amostra do mês é pequena */
+  min_coletas: number
+  itens: AreaMapa[]
+}

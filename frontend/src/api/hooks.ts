@@ -3,7 +3,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { apiGet } from './client'
-import type { Estado, EtanolGasolina, Meta, Municipio, Produto, Ranking, Resumo, Serie } from './types'
+import type { Estado, EtanolGasolina, Mapa, Meta, Municipio, Produto, Ranking, Resumo, Serie } from './types'
 
 export interface Local {
   uf?: string
@@ -81,5 +81,14 @@ export function useMeta() {
     queryKey: ['meta'],
     queryFn: ({ signal }) => apiGet<Meta>('/meta', {}, signal),
     staleTime: ONE_HOUR,
+  })
+}
+
+/** Preço médio por UF (sem `uf`) ou pelos municípios de uma UF, para o mapa. */
+export function useMapa(produto: string, uf?: string) {
+  return useQuery({
+    queryKey: ['mapa', produto, uf],
+    queryFn: ({ signal }) => apiGet<Mapa>('/mapa', { produto, uf }, signal),
+    placeholderData: (anterior) => (anterior?.uf === (uf ?? null) ? anterior : undefined), // troca de produto sem piscar
   })
 }

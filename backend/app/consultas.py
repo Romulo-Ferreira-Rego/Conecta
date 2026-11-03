@@ -247,6 +247,79 @@ def ranking(
     ]
 
 
+def previous_month(conn: Connection, produto_id: int, mes: date) -> date | None:
+    return conn.execute(
+        text(f"SELECT MAX(v.mes) FROM {VIEW} v WHERE v.produto_id = :p AND v.mes < :mes"),
+        {"p": produto_id, "mes": mes},
+    ).scalar()
+
+
+def map_prices(
+    conn: Connection,
+    produto_id: int,
+    mes: date,
+    mes_anterior: date | None,
+    estado_id: int | None = None,
+) -> list[dict]:
+    """Preço médio de cada UF (ou de cada município de uma UF) no mês, para o mapa.
+
+    A variação compara a mesma área com o mês anterior; fica vazia se a área
+    não teve coletas naquele mês.
+    """
+    if estado_id is None:
+        key, join, columns = (
+            "v.estado_id",
+            "JOIN dados.estado e ON e.id = a.chave",
+            "e.sigla AS uf, e.nome, NULL::int AS municipio_id, NULL::int AS codigo_ibge",
+        )
+        order, state_filter = "e.sigla", ""
+    else:
+        key, join, columns = (
+            "v.municipio_id",
+            "JOIN dados.municipio m ON m.id = a.chave JOIN dados.estado e ON e.id = m.estado_id",
+            "e.sigla AS uf, m.nome, m.id AS municipio_id, m.codigo_ibge",
+        )
+        order, state_filter = "m.nome", "AND v.estado_id = :estado_id"
+
+    rows = conn.execute(
+        text(
+            f"""
+            WITH mensal AS (
+                SELECT {key} AS chave, v.mes, {WEIGHTED_AVG} AS preco_medio,
+                       SUM(v.qtd_coletas) AS qtd_coletas
+                FROM {VIEW} v
+                WHERE v.produto_id = :p AND v.mes IN (:mes, :anterior) {state_filter}
+                GROUP BY 1, 2
+            )
+            SELECT {columns}, a.preco_medio, a.qtd_coletas, b.preco_medio AS preco_anterior
+            FROM mensal a
+            {join}
+            LEFT JOIN mensal b ON b.chave = a.chave AND b.mes = :anterior
+            WHERE a.mes = :mes
+            ORDER BY {order}
+            """
+        ),
+        {"p": produto_id, "mes": mes, "anterior": mes_anterior, "estado_id": estado_id},
+    )
+    result = []
+    for r in rows:
+        atual = float(r.preco_medio)
+        anterior = float(r.preco_anterior) if r.preco_anterior is not None else None
+        result.append(
+            {
+                "uf": r.uf,
+                "nome": r.nome,
+                "municipio_id": r.municipio_id,
+                "codigo_ibge": r.codigo_ibge,
+                "preco_medio": atual,
+                "qtd_coletas": r.qtd_coletas,
+                "preco_anterior": anterior,
+                "variacao_percentual": round((atual - anterior) / anterior * 100, 2) if anterior else None,
+            }
+        )
+    return result
+
+
 def recommend_fuel(preco_etanol: float, preco_gasolina: float) -> tuple[float, str]:
     """Regra dos 70%: o etanol compensa se custar até 70% do preço da gasolina.
 

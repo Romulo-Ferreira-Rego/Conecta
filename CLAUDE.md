@@ -39,7 +39,7 @@ https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-
 - Previsão de preços com machine learning (possível v3).
 
 ### 2.3 Roadmap futuro (não implementar agora)
-- **v2:** busca de postos por município, comparação lado a lado de dois estados, exportação de gráfico/CSV filtrado, mapa coroplético do Brasil.
+- **v2:** busca de postos por município, comparação lado a lado de dois estados, exportação de gráfico/CSV filtrado. (O mapa coroplético foi adiantado: ver 8.8.)
 - **v3:** alertas por e-mail (exigiria consentimento LGPD e cadastro), previsão de tendência.
 - **v4 — Portal de notícias Conecta:** home estilo jornal (manchete, destaques, últimas notícias), editorias (ex.: Economia, Tecnologia, Cidades, Dados), páginas de matéria, autores, busca, tags e painel administrativo (CMS) para publicar notícias. O painel de combustíveis vira a editoria **"Conecta Dados"**.
 
@@ -305,7 +305,7 @@ Nunca usar só a cor para indicar alta/queda: incluir seta (▲▼) e sinal (+/�
    - Barra de filtros (produto, UF, município, período).
    - 4 cards: Gasolina, Etanol, Diesel S10, GNV — preço médio e variação.
    - Gráfico de linha: evolução do preço.
-   - Gráfico de barras: preço médio por UF.
+   - Mapa interativo do Brasil por UF, com zoom nos municípios (substituiu o gráfico de barras por UF; ver 8.8).
    - Rankings: mais caros / mais baratos.
    - Indicador "Etanol ou gasolina?".
 2. **Sobre os dados:** fonte, metodologia da ANP, frequência de atualização, limitações.
@@ -339,6 +339,14 @@ Nunca usar só a cor para indicar alta/queda: incluir seta (▲▼) e sinal (+/�
 - **Consentimento** (`src/lib/consent.ts`): o site **não grava cookies**; usa só `localStorage` com `conecta-tema` e `conecta-cookies` (`aceito` | `recusado`). Banner `components/layout/CookieBanner.tsx` com "Aceitar" e "Recusar" de estilo idêntico; reaberto por "Preferências de cookies" no rodapé e na política. **Qualquer analytics futuro só pode carregar se `hasOptionalConsent()` for verdadeiro.**
 - **Política de Privacidade** (`pages/PrivacidadePage.tsx`): reflete o comportamento real do código. Ao mudar o texto, atualizar `ULTIMA_ATUALIZACAO`. Não é parecer jurídico.
 
+### 8.8 Mapa interativo (03/11/2026)
+- Componente `features/combustiveis/mapa/MapaBrasil.tsx` (substituiu o `UfChart`): Brasil pintado pelo preço médio de cada UF; clicar num estado faz zoom (animação do `viewBox` do SVG) e mostra os municípios. A UF e o município escolhidos vão para a URL (`?uf=`, `?municipio=`), filtrando o painel inteiro. "← Brasil" ou Esc volta.
+- Alternância **Preço / Variação** (variação % vs. mês anterior, escala divergente verde–cinza–vermelho com limites fixos ±0,25/1/3%). Preço: escala sequencial verde-petróleo em faixas "redondas" recalculadas para a tela atual (UFs ou municípios do estado), no máximo 6 tons. Cores em `--map-seq-*`/`--map-div-*` (`index.css`), por tema.
+- Município **sem coleta** = hachura + "Dados insuficientes". Com menos de `min_coletas` (10) coletas, aparece pintado, com aviso de "amostra pequena" no balão e `*` na tabela.
+- **Geometria:** malhas do IBGE (qualidade mínima, TopoJSON) versionadas em `frontend/public/mapas/` (`brasil.json` + `municipios/XX.json`, carregado só ao abrir o estado). Geradas por `python -m etl.ibge`, que também grava `etl/referencias/municipios_ibge.json`. Projeção de Mercator única (d3-geo) para todas as formas.
+- **Ligação ANP ↔ IBGE:** migração `0004` adiciona `dados.municipio.codigo_ibge`. A carga chama `etl.ibge.link_municipalities` (compara nomes sem acento/apóstrofo/hífen por UF; exceções em `APELIDOS`). Banco já populado: rodar `python -m etl.ibge --vincular` depois da migração.
+- Acessibilidade: estados e municípios com dados são focáveis (Enter abre/escolhe), balão também no foco, rótulos com halo, hachura além da cor, "Ver tabela".
+
 ---
 
 ## 9. API (endpoints iniciais)
@@ -362,6 +370,7 @@ Somente leitura, CORS liberado apenas para o domínio do front-end, limite de re
 > - `/api/ranking`: usa o mês mais recente; aceita `uf` para ranquear municípios de um estado; municípios precisam de ≥ 10 coletas no mês (`RANKING_MIN_COLETAS`).
 > - Endpoint extra **`/api/etanol-gasolina?uf=&municipio=`** (RF08): razão etanol/gasolina e recomendação; `null` sem dados.
 > - Extra **`/api/saude`** (health check para o deploy).
+> - Extra **`/api/mapa?produto=&uf=`** (mapa, seção 8.8): sem `uf`, preço médio e variação de cada UF no mês mais recente; com `uf`, de cada município com coletas (com `codigo_ibge`). Traz `min_coletas`.
 > - Médias agregadas são **ponderadas** por `qtd_coletas`.
 > - Limite de requisições **próprio** (`backend/app/limite.py`, 60/min por IP): o slowapi 0.1.10 não encontra rotas do FastAPI 0.16x (`_IncludedRouter`) e deixava tudo sem limite.
 > - Log de acesso do uvicorn desligado (grava IP); o log próprio registra só método, rota, status e tempo.

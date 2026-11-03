@@ -8,10 +8,13 @@ import { vi } from 'vitest'
 
 type Responses = Record<string, unknown | ((params: URLSearchParams) => unknown)>
 
-/** Simula a API: cada rota (ex.: "/resumo") devolve o valor configurado; "erro" devolve HTTP 500. */
+/**
+ * Simula a API: cada rota (ex.: "/resumo") devolve o valor configurado; "erro" devolve HTTP 500.
+ * Arquivos do próprio site (ex.: "/mapas/brasil.json") também podem ser simulados pelo caminho.
+ */
 export function mockApi(responses: Responses) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-    const url = new URL(String(input))
+    const url = new URL(String(input), 'http://localhost')
     const path = url.pathname.replace(/^\/api/, '')
     const value = responses[path]
     if (value === undefined || value === 'erro') {
